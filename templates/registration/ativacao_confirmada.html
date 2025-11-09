@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Conta Ativada - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-check-circle-fill"></i> 
+                        Conta Ativada com Sucesso!
+                    </h3>
+                </div>
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-person-check text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h4 class="text-success mb-3">Parabéns!</h4>
+                    <p class="lead mb-4">
+                        Sua conta foi ativada com sucesso. Agora você pode fazer login e começar a usar o Biblioteca IPoli.
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="bi bi-info-circle"></i> O que você pode fazer agora:</h6>
+                        <ul class="list-unstyled mb-0">
+                            <li>✅ Fazer login no sistema</li>
+                            <li>✅ Consultar o acervo de livros</li>
+                            <li>✅ Realizar empréstimos (até 3 livros)</li>
+                            <li>✅ Acompanhar seus empréstimos</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{% url 'login' %}" class="btn btn-success btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Fazer Login
+                        </a>
+                        <a href="{% url 'acervo' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-book"></i> Ver Acervo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

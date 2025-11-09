@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastro - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header text-center bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-plus"></i> Criar Conta
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person"></i> Nome *
+                                </label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.first_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person"></i> Sobrenome *
+                                </label>
+                                {{ form.last_name }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.last_name.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">
+                                <i class="bi bi-at"></i> Nome de Usuário *
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small">
+                                    {{ form.username.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Será usado para fazer login no sistema
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                <i class="bi bi-envelope"></i> E-mail *
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small">
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Usado para notificações sobre empréstimos
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.dre.id_for_label }}" class="form-label">
+                                    <i class="bi bi-card-text"></i> DRE/Matrícula *
+                                </label>
+                                {{ form.dre }}
+                                {% if form.dre.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.dre.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefone.id_for_label }}" class="form-label">
+                                    <i class="bi bi-telephone"></i> Telefone *
+                                </label>
+                                {{ form.telefone }}
+                                {% if form.telefone.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.telefone.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                    <i class="bi bi-lock"></i> Senha *
+                                </label>
+                                {{ form.password1 }}
+                                {% if form.password1.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.password1.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                    <i class="bi bi-lock-fill"></i> Confirmar Senha *
+                                </label>
+                                {{ form.password2 }}
+                                {% if form.password2.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.password2.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="bi bi-envelope-check"></i>
+                            <strong>Validação de Email Obrigatória:</strong>
+                            <p class="mb-2 mt-2">
+                                Após criar sua conta, você receberá um email de confirmação. 
+                                <strong>Sua conta só será ativada após clicar no link do email.</strong>
+                            </p>
+                            <small>Verifique sua caixa de entrada e spam.</small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Informações importantes:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>Você pode emprestar até 3 livros simultaneamente</li>
+                                <li>Prazo padrão de empréstimo: 30 dias</li>
+                                <li>Atrasos resultam em suspensão por período igual ao atraso</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> Criar Conta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">
+                        Já tem uma conta? 
+                        <a href="{% url 'login' %}" class="text-decoration-none">
+                            Faça login aqui
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

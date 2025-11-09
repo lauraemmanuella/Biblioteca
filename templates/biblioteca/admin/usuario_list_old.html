@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestão de Usuários - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-people"></i> Gestão de Usuários
+            </h2>
+            <p class="text-muted">Gerencie todos os usuários do sistema.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Buscar usuário</label>
+                            <input type="text" class="form-control" name="busca" 
+                                   value="{{ busca }}" placeholder="Nome, email ou DRE">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">Todos</option>
+                                <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Ativos</option>
+                                <option value="suspenso" {% if status == 'suspenso' %}selected{% endif %}>Suspensos</option>
+                                <option value="admin" {% if status == 'admin' %}selected{% endif %}>Administradores</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ordenar por</label>
+                            <select class="form-select" name="ordem">
+                                <option value="nome" {% if ordem == 'nome' %}selected{% endif %}>Nome</option>
+                                <option value="data" {% if ordem == 'data' %}selected{% endif %}>Data de cadastro</option>
+                                <option value="emprestimos" {% if ordem == 'emprestimos' %}selected{% endif %}>Mais empréstimos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-people text-primary display-6"></i>
+                    <div class="h4 mt-2">{{ total_usuarios }}</div>
+                    <small>Total de Usuários</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success display-6"></i>
+                    <div class="h4 mt-2">{{ usuarios_ativos }}</div>
+                    <small>Usuários Ativos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-warning display-6"></i>
+                    <div class="h4 mt-2">{{ usuarios_suspensos }}</div>
+                    <small>Usuários Suspensos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-gear text-info display-6"></i>
+                    <div class="h4 mt-2">{{ administradores }}</div>
+                    <small>Administradores</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Usuários -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Lista de Usuários
+                        {% if busca or status %}
+                            <small class="text-muted">
+                                ({{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }})
+                            </small>
+                        {% endif %}
+                    </h5>
+                    {% if busca or status %}
+                        <a href="{% url 'usuario_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x"></i> Limpar Filtros
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th>Email</th>
+                                        <th>DRE</th>
+                                        <th>Telefone</th>
+                                        <th>Status</th>
+                                        <th>Empréstimos</th>
+                                        <th>Cadastro</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for usuario in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle me-2">
+                                                    {{ usuario.first_name|first|upper }}{{ usuario.last_name|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ usuario.first_name }} {{ usuario.last_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">@{{ usuario.username }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>{{ usuario.email }}</td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ usuario.dre }}</span>
+                                        </td>
+                                        <td>{{ usuario.telefone|default:"-" }}</td>
+                                        <td>
+                                            {% if usuario.is_administrador %}
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-gear"></i> Admin
+                                                </span>
+                                            {% elif usuario.esta_suspenso %}
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-x-circle"></i> Suspenso
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> Ativo
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="text-center">
+                                                <div class="fw-bold">{{ usuario.total_emprestimos|default:0 }}</div>
+                                                <small class="text-muted">
+                                                    {{ usuario.emprestimos_ativos|default:0 }} ativo{{ usuario.emprestimos_ativos|default:0|pluralize }}
+                                                </small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small>{{ usuario.date_joined|date:"d/m/Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'usuario_detail' usuario.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if not usuario.is_administrador %}
+                                                    {% if usuario.esta_suspenso %}
+                                                        <button type="button" class="btn btn-outline-success btn-sm"
+                                                                onclick="reativarUsuario({{ usuario.id }})">
+                                                            <i class="bi bi-check"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                                                onclick="suspenderUsuario({{ usuario.id }})">
+                                                            <i class="bi bi-pause"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-muted">Nenhum empréstimo registrado.</p>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        {% if not usuario.is_administrador %}
+                                            {% if usuario.esta_suspenso %}
+                                                <button type="button" class="btn btn-success" 
+                                                        onclick="reativarUsuario({{ usuario.id }})">
+                                                    <i class="bi bi-check-circle"></i> Reativar Usuário
+                                                </button>
+                                            {% else %}
+                                                <button type="button" class="btn btn-warning" 
+                                                        onclick="suspenderUsuario({{ usuario.id }})">
+                                                    <i class="bi bi-pause-circle"></i> Suspender Usuário
+                                                </button>
+                                            {% endif %}
+                                        {% endif %}
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Paginação -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Navegação de páginas">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Primeira</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Anterior</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Próxima</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Última</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">Nenhum usuário encontrado</h4>
+                            <p class="text-muted">Tente ajustar os filtros de busca.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.stats-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+/* Correção completa para modal estável - sem tremulação */
+.modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1055 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    outline: 0 !important;
+}
+
+.modal.show {
+    display: block !important;
+}
+
+.modal-dialog {
+    position: relative !important;
+    width: auto !important;
+    margin: 0.5rem !important;
+    pointer-events: none !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.modal-dialog-centered {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 1rem) !important;
+}
+
+.modal-content {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    pointer-events: auto !important;
+    background-color: #fff !important;
+    background-clip: padding-box !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 0.3rem !important;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.5) !important;
+    outline: 0 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+.modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1050 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: #000 !important;
+}
+
+.modal-backdrop.show {
+    opacity: 0.5 !important;
+}
+
+/* Remover todas as transições e animações que podem causar tremulação */
+.modal * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Estabilizar hover effects */
+.modal .btn:hover,
+.modal .btn:focus,
+.modal .btn:active {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Garantir que tabelas não causem reflow */
+.modal .table {
+    table-layout: fixed !important;
+    width: 100% !important;
+}
+
+.modal .table td,
+.modal .table th {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+}
+
+/* Estabilizar badges e elementos pequenos */
+.modal .badge {
+    display: inline-block !important;
+    white-space: nowrap !important;
+}
+
+/* Forçar GPU acceleration para suavidade */
+.modal-content {
+    will-change: auto !important;
+    backface-visibility: hidden !important;
+    -webkit-backface-visibility: hidden !important;
+}
+
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: 500px !important;
+        margin: 1.75rem auto !important;
+    }
+}
+
+@media (min-width: 992px) {
+    .modal-lg {
+        max-width: 800px !important;
+    }
+}
+
+/* Classe para desabilitar animações completamente */
+.modal.no-animation,
+.modal.no-animation *,
+.modal.no-animation .modal-dialog,
+.modal.no-animation .modal-content {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+/* Estabilizar especificamente os botões do modal */
+.modal .btn {
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out !important;
+    transform: none !important;
+}
+
+.modal .btn:hover,
+.modal .btn:focus,
+.modal .btn:active {
+    transform: none !important;
+}
+
+/* Prevenir qualquer movimento em elementos do modal */
+.modal .table,
+.modal .badge,
+.modal .card,
+.modal .alert {
+    transform: none !important;
+    transition: none !important;
+}
+</style>
+
+<script>
+function suspenderUsuario(usuarioId) {
+    if (confirm('Tem certeza que deseja suspender este usuário?')) {
+        fetch(`/painel/usuarios/${usuarioId}/suspender/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao suspender usuário: ' + (data.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao suspender usuário');
+        });
+    }
+}
+
+function reativarUsuario(usuarioId) {
+    if (confirm('Tem certeza que deseja reativar este usuário?')) {
+        fetch(`/painel/usuarios/${usuarioId}/reativar/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Erro ao reativar usuário: ' + (data.error || 'Erro desconhecido'));
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao reativar usuário');
+        });
+    }
+}
+
+// Adicionar token CSRF se não existir
+document.addEventListener('DOMContentLoaded', function() {
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        document.body.appendChild(csrfInput);
+    }
+    
+    // Corrigir problemas de modal e eliminar tremulação
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        // Desabilitar animações do Bootstrap que causam tremulação
+        modal.classList.add('no-animation');
+        
+        modal.addEventListener('show.bs.modal', function(e) {
+            // Garantir que apenas um modal esteja aberto
+            const openModals = document.querySelectorAll('.modal.show');
+            openModals.forEach(openModal => {
+                if (openModal !== modal) {
+                    const bsModal = bootstrap.Modal.getInstance(openModal);
+                    if (bsModal) {
+                        bsModal.hide();
+                    }
+                }
+            });
+            
+            // Estabilizar o modal
+            modal.style.display = 'block';
+            modal.style.paddingRight = '0px';
+            
+            // Forçar reflow para estabilizar
+            modal.offsetHeight;
+        });
+        
+        modal.addEventListener('shown.bs.modal', function() {
+            // Garantir estabilidade após abertura
+            modal.style.transform = 'none';
+            modal.style.transition = 'none';
+            
+            // Estabilizar todos os elementos filhos
+            const allElements = modal.querySelectorAll('*');
+            allElements.forEach(el => {
+                el.style.transition = 'none';
+                el.style.animation = 'none';
+            });
+        });
+        
+        modal.addEventListener('hide.bs.modal', function() {
+            // Preparar para fechamento suave
+            modal.style.transition = 'none';
+        });
+        
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Limpeza completa após fechamento
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => {
+                if (!document.querySelector('.modal.show')) {
+                    backdrop.remove();
+                }
+            });
+            
+            // Restaurar scroll do body
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+            document.body.classList.remove('modal-open');
+            
+            // Reset do modal
+            modal.style.display = '';
+            modal.style.paddingRight = '';
+            modal.style.transform = '';
+        });
+        
+        // Prevenir eventos de mouse que podem causar tremulação
+        modal.addEventListener('mouseover', function(e) {
+            e.stopPropagation();
+        });
+        
+        modal.addEventListener('mouseout', function(e) {
+            e.stopPropagation();
+        });
+        
+        // Estabilizar hover em botões dentro do modal
+        const modalButtons = modal.querySelectorAll('.btn');
+        modalButtons.forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'none';
+                this.style.transition = 'background-color 0.15s ease-in-out, border-color 0.15s ease-in-out';
+            });
+            
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'none';
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Início - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold text-primary mb-4">
+                <i class="bi bi-book-half"></i> Bem-vindo(a) à Biblioteca IPoli
+            </h1>
+            <p class="lead mb-4">
+                Gerencie seus empréstimos e descubra novos títulos do acervo.
+            </p>
+            
+            {% if not user.is_authenticated %}
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'registro' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-person-plus"></i> Cadastrar-se
+                    </a>
+                    <a href="{% url 'acervo' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-search"></i> Explorar Acervo
+                    </a>
+                </div>
+            {% else %}
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-speedometer2"></i> Meu Dashboard
+                    </a>
+                    <a href="{% url 'acervo' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-search"></i> Buscar Livros
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-5">
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-book display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_titulos }}</div>
+                    <h6 class="card-title">Títulos no Acervo</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-collection display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_exemplares }}</div>
+                    <h6 class="card-title">Total de Exemplares</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle display-4 mb-3"></i>
+                    <div class="stats-number">{{ exemplares_disponiveis }}</div>
+                    <h6 class="card-title">Disponíveis</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-repeat display-4 mb-3"></i>
+                    <div class="stats-number">{{ emprestimos_ativos }}</div>
+                    <h6 class="card-title">Empréstimos Ativos</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Access Section -->
+    {% if user.is_authenticated %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Acesso Rápido
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'acervo' %}" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-search"></i> Buscar no Acervo
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-success w-100">
+                                <i class="bi bi-list-check"></i> Meus Empréstimos
+                            </a>
+                        </div>
+                        {% if user.is_administrador %}
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-warning w-100">
+                                <i class="bi bi-gear"></i> Painel Admin
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="{% url 'devolucao' %}" class="btn btn-outline-info w-100">
+                                <i class="bi bi-arrow-return-left"></i> Processar Devolução
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Call to Action for Non-authenticated Users -->
+    {% if not user.is_authenticated %}
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body text-center py-5">
+                    <h3 class="card-title">Pronto para começar?</h3>
+                    <p class="card-text mb-4">
+                        Cadastre-se agora e tenha acesso completo ao sistema de empréstimos da biblioteca.
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{% url 'registro' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-person-plus"></i> Criar Conta
+                        </a>
+                        <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Já tenho conta
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

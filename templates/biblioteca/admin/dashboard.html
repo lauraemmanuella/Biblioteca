@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% block title %}Painel Administrativo - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>
+                <i class="bi bi-gear"></i> Painel Administrativo
+            </h2>
+            <p class="text-muted">Visão geral do sistema e acesso rápido às principais funcionalidades.</p>
+        </div>
+    </div>
+
+    <!-- Cards de Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_usuarios }}</div>
+                    <h6 class="card-title">Usuários Cadastrados</h6>
+                    <a href="{% url 'usuario_list' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="bi bi-eye"></i> Ver Todos
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-book display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_titulos }}</div>
+                    <h6 class="card-title">Títulos no Acervo</h6>
+                    <a href="{% url 'titulo_list' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="bi bi-eye"></i> Gerenciar
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-collection display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_exemplares }}</div>
+                    <h6 class="card-title">Total de Exemplares</h6>
+                    <a href="{% url 'exemplar_list' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="bi bi-eye"></i> Ver Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-repeat display-4 mb-3"></i>
+                    <div class="stats-number">{{ emprestimos_ativos }}</div>
+                    <h6 class="card-title">Empréstimos Ativos</h6>
+                    <a href="{% url 'emprestimo_list' %}?status=ativo" class="btn btn-light btn-sm mt-2">
+                        <i class="bi bi-eye"></i> Gerenciar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas e Status -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Empréstimos Atrasados
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="h2 text-warning">{{ emprestimos_atrasados }}</div>
+                    <p class="card-text">Requerem atenção imediata</p>
+                    <a href="{% url 'emprestimo_list' %}?status=atrasado" class="btn btn-warning btn-sm">
+                        <i class="bi bi-list"></i> Ver Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-x"></i> Usuários Suspensos
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="h2 text-danger">{{ usuarios_suspensos }}</div>
+                    <p class="card-text">Não podem emprestar</p>
+                    <a href="{% url 'usuario_list' %}?status=suspenso" class="btn btn-danger btn-sm">
+                        <i class="bi bi-list"></i> Ver Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card border-info">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Relatórios
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-bar-graph display-4 text-info mb-2"></i>
+                    <p class="card-text">Análises e estatísticas</p>
+                    <a href="{% url 'relatorios' %}" class="btn btn-info btn-sm">
+                        <i class="bi bi-graph-up"></i> Ver Relatórios
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'titulo_create' %}" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle"></i><br>
+                                Cadastrar Título
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'exemplar_create' %}" class="btn btn-success w-100">
+                                <i class="bi bi-plus-square"></i><br>
+                                Adicionar Exemplar
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'emprestimo_create' %}" class="btn btn-info w-100">
+                                <i class="bi bi-arrow-right-circle"></i><br>
+                                Novo Empréstimo
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'devolucao' %}" class="btn btn-warning w-100">
+                                <i class="bi bi-arrow-return-left"></i><br>
+                                Processar Devolução
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu de Navegação -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Gerenciamento
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'titulo_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-book text-primary"></i>
+                        <strong>Títulos</strong>
+                        <span class="float-end">{{ total_titulos }}</span>
+                    </a>
+                    <a href="{% url 'exemplar_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-collection text-success"></i>
+                        <strong>Exemplares</strong>
+                        <span class="float-end">{{ total_exemplares }}</span>
+                    </a>
+                    <a href="{% url 'emprestimo_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-arrow-repeat text-info"></i>
+                        <strong>Empréstimos</strong>
+                        <span class="float-end">{{ emprestimos_ativos }}</span>
+                    </a>
+                    <a href="{% url 'usuario_list' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-people text-warning"></i>
+                        <strong>Usuários</strong>
+                        <span class="float-end">{{ total_usuarios }}</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-tools"></i> Ferramentas
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'relatorios' %}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-graph-up text-primary"></i>
+                        <strong>Relatórios e Estatísticas</strong>
+                    </a>
+                    <a href="/admin/" class="list-group-item list-group-item-action" target="_blank">
+                        <i class="bi bi-gear text-success"></i>
+                        <strong>Django Admin</strong>
+                        <small class="text-muted">(Nova aba)</small>
+                    </a>
+                    <div class="list-group-item">
+                        <i class="bi bi-envelope text-info"></i>
+                        <strong>Sistema de Notificações</strong>
+                        <small class="text-muted d-block">Automático via cron job</small>
+                    </div>
+                    <div class="list-group-item">
+                        <i class="bi bi-qr-code text-warning"></i>
+                        <strong>QR Codes</strong>
+                        <small class="text-muted d-block">Gerados automaticamente</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

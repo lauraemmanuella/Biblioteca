@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Exemplar - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-collection"></i> {{ action }} Exemplar
+            </h2>
+            <p class="text-muted">
+                {% if action == 'Criar' %}
+                    Adicione um novo exemplar físico ao acervo da biblioteca.
+                {% else %}
+                    Edite as informações deste exemplar.
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'exemplar_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulário Principal -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil"></i> Informações do Exemplar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Título -->
+                        <div class="mb-3">
+                            <label for="{{ form.titulo.id_for_label }}" class="form-label">
+                                <i class="bi bi-book"></i> Título da Obra *
+                            </label>
+                            {{ form.titulo }}
+                            {% if form.titulo.errors %}
+                                <div class="text-danger small">
+                                    {{ form.titulo.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Selecione o título para o qual este exemplar pertence.
+                                <a href="{% url 'titulo_create' %}" target="_blank" class="text-decoration-none">
+                                    <i class="bi bi-plus-circle"></i> Criar novo título
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Data de Aquisição -->
+                        <div class="mb-3">
+                            <label for="{{ form.data_aquisicao.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar"></i> Data de Aquisição *
+                            </label>
+                            {{ form.data_aquisicao }}
+                            {% if form.data_aquisicao.errors %}
+                                <div class="text-danger small">
+                                    {{ form.data_aquisicao.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Data em que este exemplar foi adquirido pela biblioteca.
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        {% if form.observacoes %}
+                        <div class="mb-3">
+                            <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                                <i class="bi bi-chat-text"></i> Observações
+                            </label>
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                                <div class="text-danger small">
+                                    {{ form.observacoes.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Informações adicionais sobre este exemplar (estado, localização, etc.).
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Botões de Ação -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> 
+                                {% if action == 'Criar' %}Criar Exemplar{% else %}Salvar Alterações{% endif %}
+                            </button>
+                            <a href="{% url 'exemplar_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações Laterais -->
+        <div class="col-md-4 mb-4">
+            <!-- Informações sobre Exemplares -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Sobre Exemplares
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-2">
+                        <strong>Código Automático:</strong> O código do exemplar será gerado automaticamente após a criação.
+                    </p>
+                    <p class="small mb-2">
+                        <strong>QR Code:</strong> Um QR Code único será criado para facilitar empréstimos e devoluções.
+                    </p>
+                    <p class="small mb-0">
+                        <strong>Status:</strong> O exemplar será criado como "Disponível" por padrão.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Estatísticas do Título Selecionado -->
+            <div class="card" id="titulo-stats" style="display: none;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up"></i> Estatísticas do Título
+                    </h6>
+                </div>
+                <div class="card-body" id="titulo-stats-content">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning"></i> Ações Rápidas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'titulo_create' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Criar Novo Título
+                        </a>
+                        <a href="{% url 'titulo_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-list"></i> Ver Todos os Títulos
+                        </a>
+                        <a href="{% url 'exemplar_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-collection"></i> Ver Todos os Exemplares
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.card-header {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 6px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tituloSelect = document.querySelector('select[name="titulo"]');
+    const tituloStats = document.getElementById('titulo-stats');
+    const tituloStatsContent = document.getElementById('titulo-stats-content');
+    
+    if (tituloSelect) {
+        tituloSelect.addEventListener('change', function() {
+            const tituloId = this.value;
+            
+            if (tituloId) {
+                // Mostrar estatísticas do título selecionado
+                tituloStats.style.display = 'block';
+                
+                // Aqui você pode fazer uma requisição AJAX para buscar estatísticas
+                // Por enquanto, vamos mostrar informações básicas
+                tituloStatsContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="small mt-2 mb-0">Carregando estatísticas...</p>
+                    </div>
+                `;
+                
+                // Simular carregamento (substituir por AJAX real)
+                setTimeout(() => {
+                    tituloStatsContent.innerHTML = `
+                        <div class="row text-center">
+                            <div class="col-6 mb-2">
+                                <div class="h6 text-primary">-</div>
+                                <small>Exemplares</small>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <div class="h6 text-success">-</div>
+                                <small>Disponíveis</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h6 text-warning">-</div>
+                                <small>Emprestados</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h6 text-info">-</div>
+                                <small>Total Empréstimos</small>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <a href="/painel/titulos/${tituloId}/editar/" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-pencil"></i> Editar Título
+                            </a>
+                        </div>
+                    `;
+                }, 1000);
+            } else {
+                tituloStats.style.display = 'none';
+            }
+        });
+    }
+    
+    // Auto-focus no primeiro campo
+    const firstInput = document.querySelector('select[name="titulo"]');
+    if (firstInput) {
+        firstInput.focus();
+    }
+});
+</script>
+{% endblock %}

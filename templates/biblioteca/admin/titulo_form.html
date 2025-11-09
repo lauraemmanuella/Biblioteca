@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar{% else %}Cadastrar{% endif %} Título - Biblioteca IPoli
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-book"></i> 
+                {% if form.instance.pk %}Editar Título{% else %}Cadastrar Novo Título{% endif %}
+            </h2>
+            <p class="text-muted">
+                {% if form.instance.pk %}
+                    Atualize as informações do título "{{ form.instance.titulo_da_obra }}"
+                {% else %}
+                    Preencha as informações do novo título para o acervo
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'titulo_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informações do Título
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Informações Básicas -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-bookmark"></i> Identificação
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.lombada.id_for_label }}" class="form-label">
+                                    <i class="bi bi-tag"></i> Lombada *
+                                </label>
+                                {{ form.lombada }}
+                                {% if form.lombada.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.lombada.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Código único de identificação</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.cdu.id_for_label }}" class="form-label">
+                                    <i class="bi bi-diagram-3"></i> CDU
+                                </label>
+                                {{ form.cdu }}
+                                {% if form.cdu.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.cdu.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Classificação Decimal Universal</div>
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.cutter.id_for_label }}" class="form-label">
+                                    <i class="bi bi-code"></i> Cutter
+                                </label>
+                                {{ form.cutter }}
+                                {% if form.cutter.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.cutter.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Número de Cutter</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Informações da Obra -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-book-half"></i> Dados da Obra
+                                </h6>
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.titulo_da_obra.id_for_label }}" class="form-label">
+                                    <i class="bi bi-type"></i> Título da Obra *
+                                </label>
+                                {{ form.titulo_da_obra }}
+                                {% if form.titulo_da_obra.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.titulo_da_obra.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.titulo_original.id_for_label }}" class="form-label">
+                                    <i class="bi bi-translate"></i> Título Original
+                                </label>
+                                {{ form.titulo_original }}
+                                {% if form.titulo_original.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.titulo_original.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Se for tradução</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.subtitulo.id_for_label }}" class="form-label">
+                                    <i class="bi bi-text-paragraph"></i> Subtítulo
+                                </label>
+                                {{ form.subtitulo }}
+                                {% if form.subtitulo.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.subtitulo.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.autor.id_for_label }}" class="form-label">
+                                    <i class="bi bi-person"></i> Autor *
+                                </label>
+                                {{ form.autor }}
+                                {% if form.autor.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.autor.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Informações de Publicação -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-building"></i> Publicação
+                                </h6>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.editora.id_for_label }}" class="form-label">
+                                    <i class="bi bi-building"></i> Editora *
+                                </label>
+                                {{ form.editora }}
+                                {% if form.editora.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.editora.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.ano_publicacao.id_for_label }}" class="form-label">
+                                    <i class="bi bi-calendar"></i> Ano *
+                                </label>
+                                {{ form.ano_publicacao }}
+                                {% if form.ano_publicacao.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.ano_publicacao.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="{{ form.edicao.id_for_label }}" class="form-label">
+                                    <i class="bi bi-hash"></i> Edição
+                                </label>
+                                {{ form.edicao }}
+                                {% if form.edicao.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.edicao.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.local_publicacao.id_for_label }}" class="form-label">
+                                    <i class="bi bi-geo"></i> Local de Publicação *
+                                </label>
+                                {{ form.local_publicacao }}
+                                {% if form.local_publicacao.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.local_publicacao.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.isbn.id_for_label }}" class="form-label">
+                                    <i class="bi bi-upc"></i> ISBN
+                                </label>
+                                {{ form.isbn }}
+                                {% if form.isbn.errors %}
+                                    <div class="text-danger small">
+                                        {{ form.isbn.errors }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Formato: 978-85-123-4567-8</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botões de Ação -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{% url 'titulo_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> 
+                                {% if form.instance.pk %}Atualizar{% else %}Cadastrar{% endif %} Título
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

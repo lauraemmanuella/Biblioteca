@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} Empréstimo - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-arrow-repeat"></i> {{ action }} Empréstimo
+            </h2>
+            <p class="text-muted">
+                {% if action == 'Criar' %}
+                    Registre um novo empréstimo de livro para um usuário.
+                {% else %}
+                    Edite as informações deste empréstimo.
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'emprestimo_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar à Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulário Principal -->
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pencil"></i> Informações do Empréstimo
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Usuário -->
+                        <div class="mb-3">
+                            <label for="{{ form.usuario.id_for_label }}" class="form-label">
+                                <i class="bi bi-person"></i> Usuário *
+                            </label>
+                            {{ form.usuario }}
+                            {% if form.usuario.errors %}
+                                <div class="text-danger small">
+                                    {{ form.usuario.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Selecione o usuário que está realizando o empréstimo.
+                            </div>
+                        </div>
+
+                        <!-- Exemplar -->
+                        <div class="mb-3">
+                            <label for="{{ form.exemplar.id_for_label }}" class="form-label">
+                                <i class="bi bi-book"></i> Exemplar *
+                            </label>
+                            {{ form.exemplar }}
+                            {% if form.exemplar.errors %}
+                                <div class="text-danger small">
+                                    {{ form.exemplar.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Selecione o exemplar que será emprestado. Apenas exemplares disponíveis são mostrados.
+                            </div>
+                        </div>
+
+                        <!-- Data do Empréstimo -->
+                        <div class="mb-3">
+                            <label for="{{ form.data_emprestimo.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar-check"></i> Data do Empréstimo *
+                            </label>
+                            {{ form.data_emprestimo }}
+                            {% if form.data_emprestimo.errors %}
+                                <div class="text-danger small">
+                                    {{ form.data_emprestimo.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Data em que o empréstimo está sendo realizado.
+                            </div>
+                        </div>
+
+                        <!-- Previsão de Devolução -->
+                        <div class="mb-3">
+                            <label for="{{ form.previsao_devolucao.id_for_label }}" class="form-label">
+                                <i class="bi bi-calendar-check"></i> Previsão de Devolução *
+                            </label>
+                            {{ form.previsao_devolucao }}
+                            {% if form.previsao_devolucao.errors %}
+                                <div class="text-danger small">
+                                    {{ form.previsao_devolucao.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Data prevista para devolução (padrão: 30 dias após o empréstimo).
+                                <button type="button" class="btn btn-link btn-sm p-0" onclick="calcularPrevisao()">
+                                    <i class="bi bi-calculator"></i> Calcular automaticamente
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Observações -->
+                        {% if form.observacoes %}
+                        <div class="mb-3">
+                            <label for="{{ form.observacoes.id_for_label }}" class="form-label">
+                                <i class="bi bi-chat-text"></i> Observações
+                            </label>
+                            {{ form.observacoes }}
+                            {% if form.observacoes.errors %}
+                                <div class="text-danger small">
+                                    {{ form.observacoes.errors }}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                Informações adicionais sobre este empréstimo.
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Botões de Ação -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> 
+                                {% if action == 'Criar' %}Realizar Empréstimo{% else %}Salvar Alterações{% endif %}
+                            </button>
+                            <a href="{% url 'emprestimo_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações Laterais -->
+        <div class="col-md-4 mb-4">
+            <!-- Regras de Empréstimo -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Regras de Empréstimo
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Prazo:</strong> 30 dias para devolução
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong>Limite:</strong> Máximo 3 livros por usuário
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                            <strong>Atraso:</strong> Suspensão por período igual ao atraso
+                        </li>
+                        <li class="mb-0">
+                            <i class="bi bi-envelope text-info"></i>
+                            <strong>Lembrete:</strong> Email 7 dias antes do vencimento
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Status do Usuário Selecionado -->
+            <div class="card mb-3" id="usuario-status" style="display: none;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-person-check"></i> Status do Usuário
+                    </h6>
+                </div>
+                <div class="card-body" id="usuario-status-content">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Informações do Exemplar Selecionado -->
+            <div class="card mb-3" id="exemplar-info" style="display: none;">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-book-half"></i> Informações do Exemplar
+                    </h6>
+                </div>
+                <div class="card-body" id="exemplar-info-content">
+                    <!-- Conteúdo será carregado via JavaScript -->
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightning"></i> Ações Rápidas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'devolucao' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-arrow-return-left"></i> Processar Devolução
+                        </a>
+                        <a href="{% url 'emprestimo_list' %}?status=ativo" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-clock"></i> Empréstimos Ativos
+                        </a>
+                        <a href="{% url 'emprestimo_list' %}?status=atrasado" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-exclamation-triangle"></i> Empréstimos Atrasados
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+.card-header {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 6px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const usuarioSelect = document.querySelector('select[name="usuario"]');
+    const exemplarSelect = document.querySelector('select[name="exemplar"]');
+    const dataEmprestimoInput = document.querySelector('input[name="data_emprestimo"]');
+    const previsaoDevolucaoInput = document.querySelector('input[name="previsao_devolucao"]');
+    
+    // Definir data atual como padrão
+    if (dataEmprestimoInput && !dataEmprestimoInput.value) {
+        const hoje = new Date().toISOString().split('T')[0];
+        dataEmprestimoInput.value = hoje;
+        calcularPrevisao();
+    }
+    
+    // Monitorar mudanças no usuário
+    if (usuarioSelect) {
+        usuarioSelect.addEventListener('change', function() {
+            const usuarioId = this.value;
+            const usuarioStatus = document.getElementById('usuario-status');
+            const usuarioStatusContent = document.getElementById('usuario-status-content');
+            if (usuarioId) {
+                usuarioStatus.style.display = 'block';
+                usuarioStatusContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="small mt-2 mb-0">Verificando status...</p>
+                    </div>
+                `;
+                fetch(`/api/usuario/${usuarioId}/`)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Erro ao buscar dados do usuário');
+                        return response.json();
+                    })
+                    .then(data => {
+                        let statusClass = 'text-success';
+                        let alertClass = 'alert-success';
+                        let statusIcon = '<i class="bi bi-check-circle"></i>';
+                        if (data.status.startsWith('Suspenso')) {
+                            statusClass = 'text-danger';
+                            alertClass = 'alert-danger';
+                            statusIcon = '<i class="bi bi-exclamation-triangle"></i>';
+                        }
+                        usuarioStatusContent.innerHTML = `
+                            <div class="row text-center">
+                                <div class="col-6 mb-2">
+                                    <div class="h6 ${statusClass}">${data.status}</div>
+                                    <small>Status</small>
+                                </div>
+                                <div class="col-6 mb-2">
+                                    <div class="h6 text-primary">
+                                        ${data.emprestimos_ativos}
+                                    </div>
+                                    <small>Empréstimos Ativos</small>
+                                </div>
+                            </div>
+                            <div class="${data.pode_emprestar ? 'alert alert-success' : 'alert alert-warning'} small mb-0">
+                                ${statusIcon} ${data.pode_emprestar ? 'Usuário pode emprestar livros' : 'Usuário não pode emprestar livros'}
+                            </div>
+                            <div class="mt-2 small text-muted">
+                                <strong>Nome:</strong> ${data.nome}<br>
+                                <strong>DRE:</strong> ${data.dre}
+                            </div>
+                        `;
+                    })
+                    .catch(() => {
+                        usuarioStatusContent.innerHTML = `<div class='alert alert-danger small'>Erro ao carregar dados do usuário.</div>`;
+                    });
+            } else {
+                usuarioStatus.style.display = 'none';
+            }
+        });
+    }
+    
+    // Monitorar mudanças no exemplar
+    if (exemplarSelect) {
+        exemplarSelect.addEventListener('change', function() {
+            const exemplarId = this.value;
+            const exemplarInfo = document.getElementById('exemplar-info');
+            const exemplarInfoContent = document.getElementById('exemplar-info-content');
+            
+            if (exemplarId) {
+                exemplarInfo.style.display = 'block';
+                exemplarInfoContent.innerHTML = `
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="small mt-2 mb-0">Carregando informações...</p>
+                    </div>
+                `;
+                
+                // Simular carregamento de informações (substituir por AJAX real)
+                setTimeout(() => {
+                    exemplarInfoContent.innerHTML = `
+                        <div class="small">
+                            <p class="mb-2"><strong>Status:</strong> <span class="badge bg-success">Disponível</span></p>
+                            <p class="mb-2"><strong>Localização:</strong> Estante A-1</p>
+                            <p class="mb-0"><strong>Última devolução:</strong> Nunca emprestado</p>
+                        </div>
+                    `;
+                }, 1000);
+            } else {
+                exemplarInfo.style.display = 'none';
+            }
+        });
+    }
+    
+    // Auto-focus no primeiro campo
+    if (usuarioSelect) {
+        usuarioSelect.focus();
+    }
+});
+
+function calcularPrevisao() {
+    const dataEmprestimoInput = document.querySelector('input[name="data_emprestimo"]');
+    const previsaoDevolucaoInput = document.querySelector('input[name="previsao_devolucao"]');
+    
+    if (dataEmprestimoInput && previsaoDevolucaoInput && dataEmprestimoInput.value) {
+        // Criar data do empréstimo considerando fuso local
+        const [ano, mes, dia] = dataEmprestimoInput.value.split('-').map(Number);
+        const dataEmprestimo = new Date(ano, mes - 1, dia); // mes - 1 pois janeiro é 0
+        
+        // Adicionar 30 dias
+        const previsaoDevolucao = new Date(dataEmprestimo);
+        previsaoDevolucao.setDate(dataEmprestimo.getDate() + 30);
+        
+        // Formatar data no formato YYYY-MM-DD considerando fuso local
+        const anoFinal = previsaoDevolucao.getFullYear();
+        const mesFinal = String(previsaoDevolucao.getMonth() + 1).padStart(2, '0');
+        const diaFinal = String(previsaoDevolucao.getDate()).padStart(2, '0');
+        
+        previsaoDevolucaoInput.value = `${anoFinal}-${mesFinal}-${diaFinal}`;
+    }
+}
+</script>
+{% endblock %}

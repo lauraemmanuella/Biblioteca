@@ -1,0 +1,296 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatórios - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-graph-up"></i> Relatórios e Estatísticas
+            </h2>
+            <p class="text-muted">Análises detalhadas sobre o funcionamento da biblioteca.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar ao Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_usuarios }}</div>
+                    <h6 class="card-title">Total de Usuários</h6>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-book display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_titulos }}</div>
+                    <h6 class="card-title">Títulos no Acervo</h6>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-collection display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_exemplares }}</div>
+                    <h6 class="card-title">Total de Exemplares</h6>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-repeat display-4 mb-3"></i>
+                    <div class="stats-number">{{ total_emprestimos }}</div>
+                    <h6 class="card-title">Total de Empréstimos</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos e Análises -->
+    <div class="row mb-4">
+        <!-- Empréstimos por Mês -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart"></i> Empréstimos por Mês (Últimos 12 Meses)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="emprestimosChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status dos Empréstimos -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-pie-chart"></i> Status dos Empréstimos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="h3 text-success">{{ emprestimos_ativos }}</div>
+                            <small>Ativos</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h3 text-warning">{{ emprestimos_atrasados }}</div>
+                            <small>Atrasados</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="h3 text-info">{{ emprestimos_devolvidos }}</div>
+                            <small>Devolvidos</small>
+                        </div>
+                    </div>
+                    <div class="progress mt-3" style="height: 20px;">
+                        <div class="progress-bar bg-success" 
+                             style="width: {{ percentual_ativos|floatformat:2 }}%"
+                             title="Ativos: {{ percentual_ativos|floatformat:2 }}%">
+                        </div>
+                        <div class="progress-bar bg-warning" 
+                             style="width: {{ percentual_atrasados|floatformat:2 }}%"
+                             title="Atrasados: {{ percentual_atrasados|floatformat:2 }}%">
+                        </div>
+                        <div class="progress-bar bg-info" 
+                             style="width: {{ percentual_devolvidos|floatformat:2 }}%"
+                             title="Devolvidos: {{ percentual_devolvidos|floatformat:2 }}%">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Livros Mais Emprestados -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy"></i> Livros Mais Emprestados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if livros_mais_emprestados %}
+                        <div class="list-group list-group-flush">
+                            {% for item in livros_mais_emprestados %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <strong>{{ item.exemplar__titulo__titulo_da_obra }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ item.exemplar__titulo__autor }}</small>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ item.total }} empréstimo{{ item.total|pluralize }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Nenhum empréstimo registrado</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Usuários Mais Ativos -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-check"></i> Usuários Mais Ativos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if usuarios_mais_ativos %}
+                        <div class="list-group list-group-flush">
+                            {% for item in usuarios_mais_ativos %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <div>
+                                    <strong>{{ item.usuario__first_name }} {{ item.usuario__last_name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ item.usuario__dre }}</small>
+                                </div>
+                                <span class="badge bg-success rounded-pill">
+                                    {{ item.total }} empréstimo{{ item.total|pluralize }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Nenhum empréstimo registrado</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empréstimos Atrasados -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-exclamation-triangle text-warning"></i> Empréstimos Atrasados
+                    </h5>
+                    <span class="badge bg-warning">{{ emprestimos_atrasados_lista|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if emprestimos_atrasados_lista %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th>Livro</th>
+                                        <th>Empréstimo</th>
+                                        <th>Previsão</th>
+                                        <th>Atraso</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emprestimo in emprestimos_atrasados_lista %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ emprestimo.usuario.first_name }} {{ emprestimo.usuario.last_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ emprestimo.usuario.dre }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ emprestimo.exemplar.titulo.titulo_da_obra }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ emprestimo.exemplar.codigo_exemplar }}</small>
+                                        </td>
+                                        <td>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</td>
+                                        <td>{{ emprestimo.previsao_devolucao|date:"d/m/Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-danger">
+                                                {{ emprestimo.dias_atraso }} dia{{ emprestimo.dias_atraso|pluralize }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'emprestimo_detail' emprestimo.id %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                            <h5 class="mt-3">Nenhum empréstimo atrasado!</h5>
+                            <p class="text-muted">Todos os empréstimos estão em dia.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('emprestimosChart').getContext('2d');
+    const emprestimosData = {{ emprestimos_por_mes|safe }};
+
+    const labels = emprestimosData.map(item => new Date(item.mes).toLocaleString('default', { month: 'long', year: 'numeric' }));
+    const data = emprestimosData.map(item => item.total);
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Nº de Empréstimos',
+                data: data,
+                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                borderColor: 'rgba(0, 123, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

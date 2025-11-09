@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>
+                <i class="bi bi-speedometer2"></i> 
+                Olá, {{ user.first_name|default:user.username }}!
+            </h2>
+            <p class="text-muted">Gerencie seus empréstimos e acompanhe seu histórico na biblioteca.</p>
+        </div>
+    </div>
+
+    <!-- Status do Usuário -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card {% if esta_suspenso %}border-danger{% else %}border-success{% endif %}">
+                <div class="card-body text-center">
+                    {% if esta_suspenso %}
+                        <i class="bi bi-exclamation-triangle text-danger display-4"></i>
+                        <h5 class="card-title text-danger">Usuário Suspenso</h5>
+                        <p class="card-text">
+                            Suspenso até: <strong>{{ data_suspensao|date:"d/m/Y" }}</strong>
+                        </p>
+                    {% else %}
+                        <i class="bi bi-check-circle text-success display-4"></i>
+                        <h5 class="card-title text-success">Status Ativo</h5>
+                        <p class="card-text">Você pode realizar empréstimos</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="bi bi-books text-primary display-4"></i>
+                    <h5 class="card-title">Livros Emprestados</h5>
+                    <p class="card-text">
+                        <span class="h3">{{ emprestimos_ativos.count }}</span> / 3
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if pode_emprestar %}
+                        <i class="bi bi-plus-circle text-success display-4"></i>
+                        <h5 class="card-title text-success">Pode Emprestar</h5>
+                        <a href="{% url 'acervo' %}" class="btn btn-success btn-sm">
+                            <i class="bi bi-search"></i> Buscar Livros
+                        </a>
+                    {% elif esta_suspenso %}
+                        <i class="bi bi-x-circle text-danger display-4"></i>
+                        <h5 class="card-title text-danger">Empréstimo Bloqueado</h5>
+                        {% if user.tem_emprestimo_atrasado %}
+                            <p class="card-text small">Você possui livros em atraso.</p>
+                        {% else %}
+                            <p class="card-text small">Sua suspensão termina em {{ data_suspensao|date:"d/m/Y" }}.</p>
+                        {% endif %}
+                    {% else %}
+                        <i class="bi bi-x-circle text-warning display-4"></i>
+                        <h5 class="card-title text-warning">Limite Atingido</h5>
+                        <p class="card-text small">Você já possui 3 livros emprestados.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empréstimos Ativos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-arrow-repeat"></i> Empréstimos Ativos
+                    </h5>
+                    <span class="badge bg-primary">{{ emprestimos_ativos.count }}</span>
+                </div>
+                <div class="card-body">
+                    {% if emprestimos_ativos %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Livro</th>
+                                        <th>Autor</th>
+                                        <th>Empréstimo</th>
+                                        <th>Devolução</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emprestimo in emprestimos_ativos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ emprestimo.exemplar.titulo.titulo_da_obra }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ emprestimo.exemplar.codigo_exemplar }}</small>
+                                        </td>
+                                        <td>{{ emprestimo.exemplar.titulo.autor }}</td>
+                                        <td>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</td>
+                                        <td>{{ emprestimo.previsao_devolucao|date:"d/m/Y" }}</td>
+                                        <td>
+                                            {% if emprestimo.esta_atrasado %}
+                                                <span class="badge bg-danger">
+                                                    <i class="bi bi-exclamation-triangle"></i>
+                                                    Atrasado ({{ emprestimo.dias_atraso }} dias)
+                                                </span>
+                                            {% else %}
+                                                {% with dias_restantes=emprestimo.dias_para_vencimento %}
+                                                    {% if dias_restantes <= 3 %}
+                                                        <span class="badge bg-warning">
+                                                            <i class="bi bi-clock"></i>
+                                                            {{ dias_restantes }} dias restantes
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check"></i>
+                                                            {{ dias_restantes }} dias restantes
+                                                        </span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'exemplar_detail' emprestimo.exemplar.id %}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Ver detalhes">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                            <h5 class="text-muted mt-3">Nenhum empréstimo ativo</h5>
+                            <p class="text-muted">Você não possui livros emprestados no momento.</p>
+                            <a href="{% url 'acervo' %}" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Explorar Acervo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico Recente -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Histórico Recente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if historico_emprestimos %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Livro</th>
+                                        <th>Empréstimo</th>
+                                        <th>Devolução</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emprestimo in historico_emprestimos %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ emprestimo.exemplar.titulo.titulo_da_obra }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ emprestimo.exemplar.titulo.autor }}</small>
+                                        </td>
+                                        <td>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</td>
+                                        <td>{{ emprestimo.data_devolucao|date:"d/m/Y" }}</td>
+                                        <td>
+                                            {% if emprestimo.devolucao_atrasada %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-clock"></i> Com atraso
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check"></i> No prazo
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="bi bi-journal-x text-muted" style="font-size: 2rem;"></i>
+                            <p class="text-muted mt-2 mb-0">Nenhum histórico de empréstimos</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestão de Empréstimos - Sistema de Biblioteca{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-arrow-repeat"></i> Gestão de Empréstimos
+            </h2>
+            <p class="text-muted">Gerencie todos os empréstimos e devoluções do sistema.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'emprestimo_create' %}" class="btn btn-success me-2">
+                <i class="bi bi-plus-circle"></i> Novo Empréstimo
+            </a>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Buscar</label>
+                            <input type="text" class="form-control" name="busca" 
+                                   value="{{ busca }}" placeholder="Usuário, livro ou código">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">Todos</option>
+                                <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Ativos</option>
+                                <option value="devolvido" {% if status == 'devolvido' %}selected{% endif %}>Devolvidos</option>
+                                <option value="atrasado" {% if status == 'atrasado' %}selected{% endif %}>Atrasados</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Período</label>
+                            <select class="form-select" name="periodo">
+                                <option value="">Todos</option>
+                                <option value="hoje" {% if periodo == 'hoje' %}selected{% endif %}>Hoje</option>
+                                <option value="semana" {% if periodo == 'semana' %}selected{% endif %}>Esta semana</option>
+                                <option value="mes" {% if periodo == 'mes' %}selected{% endif %}>Este mês</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Ordenar por</label>
+                            <select class="form-select" name="ordem">
+                                <option value="recente" {% if ordem == 'recente' %}selected{% endif %}>Mais recentes</option>
+                                <option value="antigo" {% if ordem == 'antigo' %}selected{% endif %}>Mais antigos</option>
+                                <option value="vencimento" {% if ordem == 'vencimento' %}selected{% endif %}>Vencimento</option>
+                                <option value="usuario" {% if ordem == 'usuario' %}selected{% endif %}>Usuário</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Filtrar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas Rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-arrow-repeat text-primary display-6"></i>
+                    <div class="h4 mt-2">{{ total_emprestimos }}</div>
+                    <small>Total de Empréstimos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-clock text-warning display-6"></i>
+                    <div class="h4 mt-2">{{ emprestimos_ativos }}</div>
+                    <small>Empréstimos Ativos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-exclamation-triangle text-danger display-6"></i>
+                    <div class="h4 mt-2">{{ emprestimos_atrasados }}</div>
+                    <small>Atrasados</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="bi bi-check-circle text-success display-6"></i>
+                    <div class="h4 mt-2">{{ emprestimos_devolvidos }}</div>
+                    <small>Devolvidos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Empréstimos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Lista de Empréstimos
+                        {% if busca or status or periodo %}
+                            <small class="text-muted">
+                                ({{ page_obj.paginator.count }} resultado{{ page_obj.paginator.count|pluralize }} encontrado{{ page_obj.paginator.count|pluralize }})
+                            </small>
+                        {% endif %}
+                    </h5>
+                    {% if busca or status or periodo %}
+                        <a href="{% url 'emprestimo_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x"></i> Limpar Filtros
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Usuário</th>
+                                        <th>Livro</th>
+                                        <th>Exemplar</th>
+                                        <th>Empréstimo</th>
+                                        <th>Previsão</th>
+                                        <th>Devolução</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emprestimo in page_obj %}
+                                    <tr class="{% if emprestimo.esta_atrasado and not emprestimo.data_devolucao %}table-warning{% endif %}">
+                                        <td>
+                                            <span class="badge bg-secondary">#{{ emprestimo.id }}</span>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ emprestimo.usuario.first_name }} {{ emprestimo.usuario.last_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ emprestimo.usuario.dre }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div>
+                                                <strong>{{ emprestimo.exemplar.titulo.titulo_da_obra|truncatechars:40 }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ emprestimo.exemplar.titulo.autor|truncatechars:30 }}</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">{{ emprestimo.exemplar.codigo_exemplar }}</span>
+                                        </td>
+                                        <td>
+                                            <small>{{ emprestimo.data_emprestimo|date:"d/m/Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <small>{{ emprestimo.previsao_devolucao|date:"d/m/Y" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if emprestimo.data_devolucao %}
+                                                <small>{{ emprestimo.data_devolucao|date:"d/m/Y" }}</small>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not emprestimo.data_devolucao %}
+                                                {% if emprestimo.esta_atrasado %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="bi bi-exclamation-triangle"></i> 
+                                                        Atrasado ({{ emprestimo.dias_atraso }} dias)
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">
+                                                        <i class="bi bi-clock"></i> Ativo
+                                                    </span>
+                                                {% endif %}
+                                            {% elif emprestimo.devolucao_atrasada %}
+                                                <span class="badge bg-warning">
+                                                    <i class="bi bi-clock-history"></i> Devolvido com atraso
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-check-circle"></i> Devolvido no prazo
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'emprestimo_detail' emprestimo.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if not emprestimo.data_devolucao %}
+                                                    <a href="{% url 'devolver_exemplar' emprestimo.exemplar.id %}?next={{ request.path|urlencode }}" 
+                                                       class="btn btn-outline-success"
+                                                       onclick="return confirm('Processar devolução deste empréstimo?')">
+                                                        <i class="bi bi-arrow-return-left"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginação -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Navegação de páginas">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if periodo %}&periodo={{ periodo }}{% endif %}">Primeira</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if periodo %}&periodo={{ periodo }}{% endif %}">Anterior</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if periodo %}&periodo={{ periodo }}{% endif %}">Próxima</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if periodo %}&periodo={{ periodo }}{% endif %}">Última</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-arrow-repeat text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">Nenhum empréstimo encontrado</h4>
+                            <p class="text-muted">Tente ajustar os filtros de busca.</p>
+                            <a href="{% url 'emprestimo_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Criar Primeiro Empréstimo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stats-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}

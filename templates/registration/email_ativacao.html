@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ative sua conta - Biblioteca IPoli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        .button {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background: #218838;
+        }
+        .info-box {
+            background: #e9ecef;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Biblioteca IPoli</h1>
+        <p>Bem-vindo(a) ao nosso sistema!</p>
+    </div>
+    
+    <div class="content">
+        <h2>Olá, {{ user.first_name }}!</h2>
+        
+        <p>Obrigado por se cadastrar no Biblioteca IPoli. Para completar seu cadastro e ativar sua conta, clique no botão abaixo:</p>
+        
+        <div style="text-align: center;">
+            <a href="{{ protocol }}://{{ domain }}{% url 'ativar_conta' uid token %}" class="button">
+                ✅ Ativar Minha Conta
+            </a>
+        </div>
+        
+        <div class="info-box">
+            <h4>📋 Informações da sua conta:</h4>
+            <ul>
+                <li><strong>Nome:</strong> {{ user.first_name }} {{ user.last_name }}</li>
+                <li><strong>Email:</strong> {{ user.email }}</li>
+                <li><strong>DRE:</strong> {{ user.dre }}</li>
+                <li><strong>Username:</strong> {{ user.username }}</li>
+            </ul>
+        </div>
+        
+        <h3>⚠️ Importante:</h3>
+        <ul>
+            <li>Este link de ativação é válido por <strong>7 dias</strong></li>
+            <li>Após ativar sua conta, você poderá fazer login no sistema</li>
+            <li>Você poderá emprestar até <strong>3 livros</strong> simultaneamente</li>
+            <li>O prazo padrão de empréstimo é de <strong>30 dias</strong></li>
+        </ul>
+        
+        <p>Se você não conseguir clicar no botão, copie e cole o link abaixo no seu navegador:</p>
+        <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 4px; font-family: monospace;">
+            {{ protocol }}://{{ domain }}{% url 'ativar_conta' uid token %}
+        </p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #dee2e6;">
+        
+        <h3>🚀 Próximos passos:</h3>
+        <ol>
+            <li>Clique no botão "Ativar Minha Conta" acima</li>
+            <li>Faça login com seu username e senha</li>
+            <li>Explore nosso acervo de livros</li>
+            <li>Comece a fazer empréstimos!</li>
+        </ol>
+        
+        <p>Se você não solicitou este cadastro, pode ignorar este email com segurança.</p>
+    </div>
+    
+    <div class="footer">
+        <p>
+            <strong>Biblioteca IPoli</strong><br>
+            Este é um email automático, não responda a esta mensagem.
+        </p>
+        <p>
+            Se você tiver dúvidas, entre em contato conosco através do sistema.
+        </p>
+    </div>
+</body>
+</html>

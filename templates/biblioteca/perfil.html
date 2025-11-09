@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Meu Perfil - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>
+                <i class="bi bi-person-circle"></i> Meu Perfil
+            </h2>
+            <p class="text-muted">Visualize e atualize suas informações pessoais.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informações Pessoais -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informações Pessoais
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if form %}
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                        <i class="bi bi-person"></i> Nome
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.first_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                        <i class="bi bi-person"></i> Sobrenome
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.last_name.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        <i class="bi bi-envelope"></i> E-mail
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.email.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.telefone.id_for_label }}" class="form-label">
+                                        <i class="bi bi-telephone"></i> Telefone
+                                    </label>
+                                    {{ form.telefone }}
+                                    {% if form.telefone.errors %}
+                                        <div class="text-danger small">
+                                            {{ form.telefone.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-card-text"></i> DRE/Matrícula
+                                    </label>
+                                    <input type="text" class="form-control" value="{{ user.dre }}" readonly>
+                                    <div class="form-text">Este campo não pode ser alterado</div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-at"></i> Nome de Usuário
+                                    </label>
+                                    <input type="text" class="form-control" value="{{ user.username }}" readonly>
+                                    <div class="form-text">Este campo não pode ser alterado</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle"></i> Atualizar Informações
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left"></i> Voltar
+                                </a>
+                            </div>
+                        </form>
+                    {% else %}
+                        <!-- Visualização apenas -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><strong>Nome Completo:</strong></label>
+                                <p>{{ user.first_name }} {{ user.last_name }}</p>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><strong>E-mail:</strong></label>
+                                <p>{{ user.email }}</p>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><strong>Telefone:</strong></label>
+                                <p>{{ user.telefone }}</p>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label"><strong>DRE/Matrícula:</strong></label>
+                                <p>{{ user.dre }}</p>
+                            </div>
+                        </div>
+                        
+                        <a href="?edit=1" class="btn btn-primary">
+                            <i class="bi bi-pencil"></i> Editar Informações
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+
+    </div>
+    
+
+</div>
+{% endblock %}

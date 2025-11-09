@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerenciar Títulos - Biblioteca IPoli{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>
+                <i class="bi bi-book"></i> Gerenciar Títulos
+            </h2>
+            <p class="text-muted">Cadastre, edite e gerencie os títulos do acervo da biblioteca.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <a href="{% url 'titulo_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Novo Título
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="busca" 
+                                       value="{{ busca }}" 
+                                       placeholder="Buscar por título, autor ou lombada...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{% url 'titulo_list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="bi bi-x-circle"></i> Limpar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Títulos -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Títulos Cadastrados
+                    </h5>
+                    <span class="badge bg-primary">{{ page_obj.paginator.count }} título{{ page_obj.paginator.count|pluralize }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Lombada</th>
+                                        <th>Título</th>
+                                        <th>Autor</th>
+                                        <th>Editora</th>
+                                        <th>Ano</th>
+                                        <th>Exemplares</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for titulo in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <code>{{ titulo.lombada }}</code>
+                                        </td>
+                                        <td>
+                                            <strong>{{ titulo.titulo_da_obra }}</strong>
+                                            {% if titulo.subtitulo %}
+                                                <br><small class="text-muted">{{ titulo.subtitulo }}</small>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ titulo.autor }}</td>
+                                        <td>{{ titulo.editora }}</td>
+                                        <td>{{ titulo.ano_publicacao }}</td>
+                                        <td>
+                                            <span class="badge bg-success">
+                                                {{ titulo.exemplares_disponiveis }} {% if titulo.exemplares_disponiveis == 1 %}disponível{% else %}disponíveis{% endif %}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                Total: {{ titulo.total_exemplares }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'titulo_edit' titulo.id %}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="Editar">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{% url 'exemplar_create' %}?titulo={{ titulo.id }}" 
+                                                   class="btn btn-sm btn-outline-success" 
+                                                   title="Adicionar Exemplar">
+                                                    <i class="bi bi-plus"></i>
+                                                </a>
+                                                <a href="{% url 'titulo_delete' titulo.id %}" 
+                                                   class="btn btn-sm btn-outline-danger" 
+                                                   title="Excluir"
+                                                   onclick="return confirm('Tem certeza que deseja excluir este título? Esta ação não pode ser desfeita.')">
+                                                    <i class="bi bi-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginação -->
+                        {% if page_obj.has_other_pages %}
+                        <div class="card-footer">
+                            <nav aria-label="Navegação de páginas">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}">
+                                                <i class="bi bi-chevron-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}">
+                                                <i class="bi bi-chevron-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        </div>
+                        {% endif %}
+
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">Nenhum título encontrado</h4>
+                            {% if busca %}
+                                <p class="text-muted">
+                                    Nenhum resultado para "{{ busca }}". 
+                                    <a href="{% url 'titulo_list' %}">Ver todos os títulos</a>
+                                </p>
+                            {% else %}
+                                <p class="text-muted">Comece cadastrando o primeiro título do acervo.</p>
+                                <a href="{% url 'titulo_create' %}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Cadastrar Primeiro Título
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

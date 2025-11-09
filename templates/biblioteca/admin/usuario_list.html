@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestão de Usuários - Administração{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="bi bi-people"></i> Gestão de Usuários</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'admin_dashboard' %}">Painel</a></li>
+                            <li class="breadcrumb-item active">Usuários</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+
+
+
+            <!-- Filtros -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="busca" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="busca" name="busca" 
+                    value="{{ busca|default:'' }}" placeholder="Nome, DRE ou email">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">Todos</option>
+                                <option value="ativo" {% if status == 'ativo' %}selected{% endif %}>Ativos</option>
+                                <option value="suspenso" {% if status == 'suspenso' %}selected{% endif %}>Suspensos</option>
+                                <option value="admin" {% if status == 'admin' %}selected{% endif %}>Administradores</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="ordem" class="form-label">Ordenar por</label>
+                            <select class="form-select" id="ordem" name="ordem">
+                                <option value="nome" {% if ordem == 'nome' %}selected{% endif %}>Nome</option>
+                                <option value="data" {% if ordem == 'data' %}selected{% endif %}>Data de Cadastro</option>
+                                <option value="emprestimos" {% if ordem == 'emprestimos' %}selected{% endif %}>Empréstimos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    {% if busca or status %}
+                    <div class="mt-2">
+                        <a href="{% url 'usuario_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-x-circle"></i> Limpar Filtros
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Lista de Usuários -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list"></i> Lista de Usuários
+                        <span class="badge bg-secondary ms-2">{{ page_obj.paginator.count }} usuários</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Usuário</th>
+                                        <th>DRE</th>
+                                        <th>Email</th>
+                                        <th>Status</th>
+                                        <th>Empréstimos</th>
+                                        <th>Cadastro</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for usuario in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-circle me-2">
+                                                    {{ usuario.first_name|first }}{{ usuario.last_name|first }}
+                                                </div>
+                                                <div>
+                                                    <strong>{{ usuario.first_name }} {{ usuario.last_name }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">@{{ usuario.username }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <code>{{ usuario.dre }}</code>
+                                        </td>
+                                        <td>
+                                            <small>{{ usuario.email }}</small>
+                                        </td>
+                                        <td>
+                                            {% if usuario.is_administrador %}
+                                                <span class="badge bg-danger">Administrador</span>
+                                            {% elif usuario.esta_suspenso %}
+                                                <span class="badge bg-warning">Suspenso</span>
+                                            {% else %}
+                                                <span class="badge bg-success">Ativo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ usuario.emprestimos_ativos }}</span> /
+                                            <span class="badge bg-secondary">{{ usuario.total_emprestimos }}</span>
+                                        </td>
+                                        <td>
+                                            <small>{{ usuario.date_joined|date:"d/m/Y" }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'usuario_detail' usuario.id %}" class="btn btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                {% if not usuario.is_administrador %}
+                                                    {% if usuario.esta_suspenso %}
+                                                        <button type="button" class="btn btn-outline-success btn-sm"
+                                                                onclick="reativarUsuario('{{ usuario.id }}')">
+                                                            <i class="bi bi-check"></i>
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                                                onclick="suspenderUsuario('{{ usuario.id }}')">
+                                                            <i class="bi bi-pause"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Paginação -->
+                        {% if page_obj.has_other_pages %}
+                            <nav aria-label="Navegação de páginas">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Primeira</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Anterior</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ num }}</span>
+                                            </li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Próxima</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if busca %}&busca={{ busca }}{% endif %}{% if status %}&status={{ status }}{% endif %}">Última</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-people text-muted" style="font-size: 4rem;"></i>
+                            <h4 class="text-muted mt-3">Nenhum usuário encontrado</h4>
+                            <p class="text-muted">Tente ajustar os filtros de busca.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3498db, #2ecc71);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.stats-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+</style>
+
+<script>
+// Função para obter cookie pelo nome (para CSRF token)
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+// Função helper para fazer requests POST com CSRF
+async function makePostRequest(url) {
+    // Tentar pegar CSRF token do input ou cookie
+    let csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+    if (!csrftoken) {
+        csrftoken = getCookie('csrftoken');
+        console.log('CSRF do cookie:', csrftoken ? 'encontrado' : 'não encontrado');
+    }
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken || '',
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin' // importante para CSRF
+        });
+
+        // Log para debug
+        console.log('Status:', response.status);
+        if (!response.ok) {
+            const errMsg = `HTTP ${response.status}`;
+            try {
+                // Tentar ler mensagem de erro do JSON
+                const errData = await response.json();
+                throw new Error(`${errMsg}: ${errData.error || 'Erro desconhecido'}`);
+            } catch (e) {
+                throw new Error(errMsg);
+            }
+        }
+
+        return await response.json();
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+        throw error;
+    }
+}
+
+function suspenderUsuario(usuarioId) {
+    if (confirm('Tem certeza que deseja suspender este usuário?')) {
+        makePostRequest(`/painel/usuarios/${usuarioId}/suspender/`)
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao suspender usuário: ' + (data.error || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro completo:', error);
+                alert('Erro ao suspender usuário: ' + error.message);
+            });
+    }
+}
+
+function reativarUsuario(usuarioId) {
+    if (confirm('Tem certeza que deseja reativar este usuário?')) {
+        makePostRequest(`/painel/usuarios/${usuarioId}/reativar/`)
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erro ao reativar usuário: ' + (data.error || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro completo:', error);
+                alert('Erro ao reativar usuário: ' + error.message);
+            });
+    }
+}
+
+// Verificação inicial de CSRF
+document.addEventListener('DOMContentLoaded', function() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+    console.log('CSRF token disponível:', !!token);
+});
+</script>
+{% endblock %}
