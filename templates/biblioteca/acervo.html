@@ -115,7 +115,7 @@
                                         </div>
                                         
                                         <!-- Informações Adicionais -->
-                                        {% if titulo.isbn %}
+                                        {% if titulo.isbn and titulo.isbn != "nan" %}
                                             <small class="text-muted d-block">
                                                 <strong>ISBN:</strong> {{ titulo.isbn }}
                                             </small>

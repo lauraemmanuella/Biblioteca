@@ -500,6 +500,7 @@ def exemplar_list(request):
     # Filtros
     titulo_id = request.GET.get('titulo')
     disponivel = request.GET.get('disponivel')
+    busca = request.GET.get('busca', '')
     
     if titulo_id:
         exemplares = exemplares.filter(titulo_id=titulo_id)
@@ -508,6 +509,15 @@ def exemplar_list(request):
         exemplares = exemplares.filter(disponivel=True)
     elif disponivel == 'nao':
         exemplares = exemplares.filter(disponivel=False)
+
+    # Busca por código, título, autor ou lombada
+    if busca:
+        exemplares = exemplares.filter(
+            Q(titulo__titulo_da_obra__icontains=busca) |
+            Q(titulo__autor__icontains=busca) |
+            Q(codigo_exemplar__icontains=busca) |
+            Q(titulo__lombada__icontains=busca)
+        )
     
     paginator = Paginator(exemplares, 15)
     page_number = request.GET.get('page')
@@ -527,6 +537,10 @@ def exemplar_list(request):
         'titulos': titulos,
         'titulo_selecionado': titulo_id,
         'disponivel_selecionado': disponivel,
+        'busca': busca,
+        # manter nomes que os templates esperam
+        'titulo_filtro': titulo_id,
+        'disponivel': disponivel,
         'total_exemplares': total_exemplares,
         'disponiveis': disponiveis,
         'emprestados': emprestados,
@@ -576,6 +590,11 @@ def emprestimo_list(request):
     
     # Filtros
     status = request.GET.get('status')
+    busca = request.GET.get('busca', '')
+    periodo = request.GET.get('periodo', '')
+    ordem = request.GET.get('ordem', 'recente')
+
+    # Filtrar por status
     if status == 'ativo':
         emprestimos = emprestimos.filter(data_devolucao__isnull=True)
     elif status == 'devolvido':
@@ -585,14 +604,65 @@ def emprestimo_list(request):
             data_devolucao__isnull=True,
             previsao_devolucao__lt=timezone.now().date()
         )
+
+    # Busca por usuário, livro ou código
+    if busca:
+        emprestimos = emprestimos.filter(
+            Q(usuario__first_name__icontains=busca) |
+            Q(usuario__last_name__icontains=busca) |
+            Q(usuario__dre__icontains=busca) |
+            Q(exemplar__titulo__titulo_da_obra__icontains=busca) |
+            Q(exemplar__codigo_exemplar__icontains=busca)
+        )
+
+    # Período: hoje / semana / mês
+    hoje = timezone.now().date()
+    if periodo == 'hoje':
+        emprestimos = emprestimos.filter(data_emprestimo__date=hoje)
+    elif periodo == 'semana':
+        # semana corrente: desde o início da semana (segunda-feira)
+        start_of_week = hoje - timedelta(days=hoje.weekday())
+        emprestimos = emprestimos.filter(data_emprestimo__date__gte=start_of_week)
+    elif periodo == 'mes':
+        emprestimos = emprestimos.filter(
+            data_emprestimo__year=hoje.year,
+            data_emprestimo__month=hoje.month
+        )
+
+    # Ordenação
+    if ordem == 'recente':
+        emprestimos = emprestimos.order_by('-data_emprestimo')
+    elif ordem == 'antigo':
+        emprestimos = emprestimos.order_by('data_emprestimo')
+    elif ordem == 'vencimento':
+        emprestimos = emprestimos.order_by('previsao_devolucao')
+    elif ordem == 'usuario':
+        emprestimos = emprestimos.order_by('usuario__first_name', 'usuario__last_name')
     
     paginator = Paginator(emprestimos, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Estatísticas rápidas
+    total_emprestimos = Emprestimo.objects.count()
+    emprestimos_ativos = Emprestimo.objects.filter(data_devolucao__isnull=True).count()
+    emprestimos_atrasados = Emprestimo.objects.filter(
+        data_devolucao__isnull=True,
+        previsao_devolucao__lt=timezone.now().date()
+    ).count()
+    emprestimos_devolvidos = Emprestimo.objects.filter(data_devolucao__isnull=False).count()
+
     return render(request, 'biblioteca/admin/emprestimo_list.html', {
         'page_obj': page_obj,
-        'status_selecionado': status
+        'status_selecionado': status,
+        'busca': busca,
+        'status': status,
+        'periodo': periodo,
+        'ordem': ordem,
+        'total_emprestimos': total_emprestimos,
+        'emprestimos_ativos': emprestimos_ativos,
+        'emprestimos_atrasados': emprestimos_atrasados,
+        'emprestimos_devolvidos': emprestimos_devolvidos,
     })
 
 

@@ -29,7 +29,7 @@
                 <div class="card-body">
                     <h3 class="card-title text-primary">{{ exemplar.titulo.titulo_da_obra }}</h3>
                     
-                    {% if exemplar.titulo.subtitulo %}
+                    {% if exemplar.titulo.subtitulo and exemplar.titulo.subtitulo != "nan" %}
                         <h5 class="card-subtitle mb-3 text-muted">{{ exemplar.titulo.subtitulo }}</h5>
                     {% endif %}
                     
@@ -71,12 +71,14 @@
                                     <td><strong><i class="bi bi-bookmark"></i> Lombada:</strong></td>
                                     <td>{{ exemplar.titulo.lombada }}</td>
                                 </tr>
-                                {% if exemplar.titulo.isbn %}
                                 <tr>
                                     <td><strong><i class="bi bi-upc"></i> ISBN:</strong></td>
-                                    <td>{{ exemplar.titulo.isbn }}</td>
+                                    <td>
+                                        {% if exemplar.titulo.isbn and exemplar.titulo.isbn != "nan" %}
+                                            {{ exemplar.titulo.isbn }}
+                                        {% endif %}
+                                    </td>
                                 </tr>
-                                {% endif %}
                                 {% if exemplar.titulo.cdu %}
                                 <tr>
                                     <td><strong><i class="bi bi-diagram-3"></i> CDU:</strong></td>
@@ -242,7 +244,7 @@
     </div>
     
     <!-- Informações Adicionais -->
-    {% if exemplar.titulo.titulo_original %}
+    {% if exemplar.titulo.titulo_original and exemplar.titulo.titulo_original != "nan" %}
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">
